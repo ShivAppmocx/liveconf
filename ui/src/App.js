@@ -3,10 +3,13 @@ import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
 import apiPath from './includes/config';
+import CourseSectionDataList from './CourseSectionDataList';
+import DatatablePage from './DatatablePage';
+import DatatableReact from './DatatableReact';
 
+import Navbar from './Navbar';
 
 function App() {
- 
   const [posts, setPosts] = useState([]);
   const [auth, setAuth] = useState(false);
 
@@ -22,18 +25,24 @@ function App() {
   );
 
   useEffect(() => {
+  
+    const setLocalStorageData = (data) => {
+      let dta = data;
+      localStorage.setItem("ReqData", JSON.stringify(dta));
+    };
+
     axios
       .get(apiPath, { params })
       .then(response => {
         let data = response.data.data;
-        let dataLength = Object.keys(data.auth).length;
+        let dataLength = Object.keys(data.userDetails).length;
         if (!dataLength) {
           alert('Invalid Auth!');
           setAuth(false);
           return;
         } else {
-          // alert('true');
           setAuth(true);
+          setLocalStorageData(data)
         }
       })
       .catch(error => {
@@ -41,13 +50,18 @@ function App() {
       });
   }, [params]);
 
-  // console.log(auth);return;
-  
   return (
     <div>
-      <h1>User Authentication!</h1>
+      {/* <h1>User Authentication!</h1> */}
       {auth ? (
-        <p>You are logged in!</p>
+        <>
+        <Navbar />
+        <CourseSectionDataList authCode={auth_code} />
+        {/* <DatatablePage /> */}
+        {/* <DatatableReact authCode={auth_code}/> */}
+        {/* <p>You are logged in!</p> */}
+        </>
+   
       ) : (
         <p></p>
       )}
