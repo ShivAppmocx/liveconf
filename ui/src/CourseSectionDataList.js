@@ -6,6 +6,7 @@ import apiPath from './includes/config';
 import { MDBDataTable, MDBBtn } from 'mdbreact';
 
 
+
 const CourseSectionDataList = (props) => {
   const [facultySectionData, setfacultySectionData] = useState([]);
 
