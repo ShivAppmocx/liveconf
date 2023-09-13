@@ -6,6 +6,8 @@ import apiPath from './includes/config';
 import { MDBDataTable, MDBBtn } from 'mdbreact';
 import JoinModal from './JoinModal';
 import ModalExample from './ModalExample';
+import Accordion from './Accordion'; // Import your Accordion component
+import EditMeetingRecord from './EditMeetingRecord';
 
 const CourseSectionDataList = (props) => {
 
@@ -14,6 +16,7 @@ const CourseSectionDataList = (props) => {
   const [isDeleted, setIsDeleted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [rowData, setRowData] = useState(null);
   const [editRowData, setEditRowData] = useState([]);
   const [rowIndexx, setRowIndexx] = useState(null);
@@ -70,6 +73,9 @@ const CourseSectionDataList = (props) => {
   const toggleJoinModal = () => {
     setShowJoinModal(!showJoinModal);
   };
+  const toggleEditModal = () => {
+    setShowEditModal(!showEditModal);
+  };
 
   const isButtonEnabled = userId === 5 || userId === 10; // Define the condition
 
@@ -113,7 +119,6 @@ const CourseSectionDataList = (props) => {
     const userName = (localData.userDetails)[0].name;
     const userUsn = (localData.userDetails)[0].usn;
 
-    console.log('aaa',rowObject);
     var editParams = {
       "method": "createJoinMeetingLink",
       "collegeId": collegeId,
@@ -147,22 +152,38 @@ const CourseSectionDataList = (props) => {
     const { rowData } = props;
       // alert(`Course : ${rowObject.section_name} \nSection : ${rowObject.course_name}`);
     }
-    console.log('createdCourseSectionList',createdCourseSectionList);
     const isJoinButtonEnabled = createdCourseSectionList.some(item =>
       rowData === `joinButton:-:${item.course_name}:-:${item.section_id}`
     );
+    
+
     return (
-      <button
-        type="button"
-        color="primary"
-        // class="btn btn-primary custBtn"
-        {...props}
-        className={`btn btn-primary custBtn ${isJoinButtonEnabled ? '' : 'disabled'}`}
-        onClick={isJoinButtonEnabled ? handleJoinEvent : null}
-      >
-        Join
-      </button>
+      <>
+        {isJoinButtonEnabled && ( // Only render the button if the condition is met
+          <button
+            type="button"
+            color="primary"
+            className="btn btn-dark custBtn"
+            onClick={handleJoinEvent}
+          >
+            Join
+          </button>
+        )}
+      </>
     );
+    
+    // return (
+    //   <button
+    //     type="button"
+    //     color="primary"
+    //     // class="btn btn-primary custBtn"
+    //     {...props}
+    //     className={`btn btn-primary custBtn ${isJoinButtonEnabled ? '' : 'disabled'}`}
+    //     onClick={isJoinButtonEnabled ? handleJoinEvent : null}
+    //   >
+    //     Join
+    //   </button>
+    // );
   }
 
   function EditButton({ rowData, rowIndex, rowObject, toggleJoinButton }) {
@@ -187,10 +208,9 @@ const CourseSectionDataList = (props) => {
 
       axios.get(apiPath, { params: editParams })
           .then(response => {
-
               setRowData(rowObject);
               setRowIndexx(rowIndex);
-              toggleJoinModal();
+              toggleEditModal();
               setIsEdited(true);
               setIsDeleted(false);
               setIsRecording(false);
@@ -200,14 +220,17 @@ const CourseSectionDataList = (props) => {
               console.error(error);
           });
     }
-    const isCreateButtonEnabled = userType === 5 || userType === 10 || userType === 6; // Define the condition
+    const isEditButtonVisible = userType === 5 || userType === 10 || userType === 6; // Define the condition
+    const isEditButtonEnabled = createdCourseSectionList.some(item =>
+      rowData === `editButton:-:${item.course_name}:-:${item.section_id}`
+    );
     return (
       <>
-        {isCreateButtonEnabled && ( // Only render the button if the condition is met
+        {isEditButtonVisible && ( // Only render the button if the condition is met
           <button
             type="button"
             color="primary"
-            className="btn btn-info custBtn"
+            className={`btn btn-info custBtn ${isEditButtonEnabled ? '' : 'disabled'}`}
             onClick={handleEditEvent}
           >
             Edit
@@ -252,15 +275,17 @@ const CourseSectionDataList = (props) => {
               console.error(error);
           });
     }
-    const isCreateButtonEnabled = userType === 5 || userType === 10 || userType === 6; // Define the condition
-    
+    const isDeleteButtonvisible = userType === 5 || userType === 10 || userType === 6; // Define the condition
+    const isDeleteButtonEnabled = createdCourseSectionList.some(item =>
+      rowData === `deleteButton:-:${item.course_name}:-:${item.section_id}`
+    );
     return (
       <>
-        {isCreateButtonEnabled && ( // Only render the button if the condition is met
+        {isDeleteButtonvisible && ( // Only render the button if the condition is met
           <button
             type="button"
             color="primary"
-            className="btn btn-danger custBtn"
+            className={`btn btn-danger custBtn ${isDeleteButtonEnabled ? '' : 'disabled'}`}
             onClick={handleDeleteEvent}
           >
             Delete
@@ -270,8 +295,12 @@ const CourseSectionDataList = (props) => {
     );
   }
 
-  
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false); // Add state for accordion
+
   function RecordingButton({ rowData, rowIndex, rowObject, toggleJoinButton }) {
+
+    setIsAccordionOpen(true);
+
     const handleRecordingEvent = () => { 
       const localData = JSON.parse(localStorage.getItem("ReqData"));
       const collegeId = (localData.clgDetails)[0].college_id;
@@ -307,11 +336,11 @@ const CourseSectionDataList = (props) => {
 
     const isCreateButtonEnabled = userType === 5 || userType === 10 || userType === 6; // Define the condition
     const isCreatedButton = createdCourseSectionList.some(item =>
-      rowData === `recordingButton:-:${item.course_name}:-:${item.section_name}`
+      rowData === `recordingButton:-:${item.course_name}:-:${item.section_id}`
     );
     return (
       <>
-        { ( // Only render the button if the condition is met
+        { isCreatedButton && ( // Only render the button if the condition is met
           <button
             type="button"
             color="primary"
@@ -374,25 +403,24 @@ const CourseSectionDataList = (props) => {
   const mappedData = {
     columns,
     rows: facultySectionData.map((row, index) => {
-      console.log('rowww', row); // Log the row data here
+      // console.log('rowww', row); // Log the row data here
       const isJoinButtonEnabled = enabledJoinButtons[index];
       // disabled={!isJoinButtonEnabled}
       return {
         ...row,
         sr_no: index + 1,
         action: [<CreateButton rowData={`createButton:-:${row.course_name}:-:${row.section_name}`} rowIndex={index} rowObject={row} toggleModal={() => toggleModal(index)} />, 
+
+        <EditButton rowData={`editButton:-:${row.course_name}:-:${row.section_id}`} rowIndex={index} rowObject={row} />,
+        <DeleteButton rowData={`deleteButton:-:${row.course_name}:-:${row.section_id}`} rowIndex={index} rowObject={row} />,
+        <br /> ,
         <JoinButton rowData={`joinButton:-:${row.course_name}:-:${row.section_id}`} rowIndex={index} rowObject={row} toggleModal={() => toggleModal(index)} />,
-        <EditButton rowData={`editButton:-:${row.course_name}:-:${row.section_name}`} rowIndex={index} rowObject={row} />,
-        <DeleteButton rowData={`deleteButton:-:${row.course_name}:-:${row.section_name}`} rowIndex={index} rowObject={row} />,
-        <RecordingButton rowData={`recordingButton:-:${row.course_name}:-:${row.section_name}`} rowIndex={index} rowObject={row} />
-      
+        <RecordingButton rowData={`recordingButton:-:${row.course_name}:-:${row.section_id}`} rowIndex={index} rowObject={row} />
       ] // Replace with your action button component or JSX    
       };
     })
   };
-
   // console.log('mapped', mappedData.rows);
-
   return (
     <>
       <MDBDataTable
@@ -403,6 +431,12 @@ const CourseSectionDataList = (props) => {
       />
       {showModal && <ModalExample rowData={rowData} rowIndex={rowIndexx} showModal={showModal} toggleModal={toggleModal} toggleJoinButton={toggleJoinButton} authCode={authCode} />}
       {showJoinModal && <JoinModal rowData={rowData} rowIndex={rowIndexx} showModal={showJoinModal} toggleModal={toggleJoinModal} toggleJoinButton={toggleJoinButton} isEdited={isEdited} isDeleted={isDeleted} editRowData={editRowData} isRecording={isRecording}  />}
+      {showEditModal && <EditMeetingRecord rowData={rowData} rowIndex={rowIndexx} showModal={showEditModal} toggleModal={toggleEditModal}  editRowData={editRowData}   />}
+      
+      {/* {isAccordionOpen && ( // Conditionally render the accordion
+        <Accordion title="Accordion Title" content="Accordion Content" />
+      )} */}
+   
     </>
   );
 };

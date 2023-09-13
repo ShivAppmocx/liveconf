@@ -42,10 +42,10 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
     deptId = rowData.department_id;
     courseId = rowData.course_id;
     sectionId = rowData.section_id;
-    if(getRecordByMeetingId){
+    if (getRecordByMeetingId) {
       vClassName = getRecordByMeetingId.virtual_classroom_name;
       welMsg = getRecordByMeetingId.welcome_message;
-      console.log('inn',vClassName);      
+      console.log('inn', vClassName);
     }
   }
 
@@ -56,9 +56,11 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
   const collegeId = (localData.clgDetails)[0].college_id;
   const userId = (localData.userDetails)[0].user_id;
   const userEmail = (localData.userDetails)[0].email;
+  const userRole = (localData.userDetails)[0].user_type;
+
 
   const initialFormValue = getRecordByMeetingId
-  ? {
+    ? {
       fname: '',
       lname: 'Otto',
       virtualClassroomName: getRecordByMeetingId.virtual_classroom_name,
@@ -69,8 +71,9 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
       college_id: collegeId,
       user_id: userId,
       user_email: userEmail,
+      userRole: userRole
     }
-  : {
+    : {
       fname: '',
       lname: 'Otto',
       course_name: courseName,
@@ -83,11 +86,12 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
       college_id: collegeId,
       user_id: userId,
       user_email: userEmail,
+      userRole: userRole
     };
 
-    console.log('initialFormValue',initialFormValue);
+  console.log('initialFormValue', initialFormValue);
 
-const [formValue, setFormValue] = useState(initialFormValue);
+  const [formValue, setFormValue] = useState(initialFormValue);
 
 
   // const [formValue, setFormValue] = useState({
@@ -110,9 +114,9 @@ const [formValue, setFormValue] = useState(initialFormValue);
     //   ...prevFormValue,
     //   welcomeMessage: getRecordByMeetingId.welcomeMessage
     // }));
-   
+
     // setFormValue({ ...formValue, "welcomeMessage": getRecordByMeetingId.welcomeMessage });
-    
+
   }
   const onChange = (e) => {
     setFormValue({ ...formValue, [e.target.name]: e.target.value });
@@ -122,7 +126,7 @@ const [formValue, setFormValue] = useState(initialFormValue);
     e.preventDefault();
     alert('aa');
   }
-  
+
   const [isWaitForModerator, setIsWaitForModerator] = useState(true);
   const [isSessionRecorded, setIsSessionRecorded] = useState(true);
 
@@ -165,6 +169,7 @@ const [formValue, setFormValue] = useState(initialFormValue);
     const createdByUserId = formValue.user_id;
     const createdByUserEmail = formValue.user_email;
     const createdByCollegeId = formValue.college_id;
+    const userRole = formValue.userRole;
 
     const virtualClassroomName = formValue.virtualClassroomName;
     const sqlFormattedStartDateTime = dateValue1.toISOString().slice(0, 19).replace("T", " ");
@@ -188,7 +193,8 @@ const [formValue, setFormValue] = useState(initialFormValue);
       createdByUserId: createdByUserId,
       createdByUserEmail: createdByUserEmail,
       createdByCollegeId: createdByCollegeId,
-      authCode : authCode
+      userRole: userRole,
+      authCode: authCode
     });
 
     insertClassDetails(insertParams);
@@ -202,12 +208,12 @@ const [formValue, setFormValue] = useState(initialFormValue);
         <MDBModalDialog>
           <MDBModalContent>
             <MDBModalHeader>
-              <MDBModalTitle>Modal title</MDBModalTitle>
+              <MDBModalTitle>Create</MDBModalTitle>
               <MDBBtn className='btn-close' color='none' onClick={toggleModal}></MDBBtn>
             </MDBModalHeader>
             <form id="formData" ref={formRef} onSubmit={handleSubmit}>
               <MDBModalBody>
-                <MDBValidation className='row g-2'>
+                <MDBValidation className='row g-2' >
                   <div className='col-md-6'>
                     <MDBInput
                       value={formValue.dept_id}
@@ -289,14 +295,29 @@ const [formValue, setFormValue] = useState(initialFormValue);
                 </div>
 
                 <div className='col-12'>
-                  <label>Start Date</label>
-                  <DateTimePicker onChange={onChangeDate1} value={dateValue1} />
+                  <div className='form-group row align-items-center'>
+                    <label className='col-sm-3 col-form-label font-weight-bold'>Start Date : </label>
+                    <div className='col-sm-9'>
+                      <DateTimePicker
+                        className='date-time-picker'
+                        style={{ border: '1px solid #ccc', borderRadius: '4px' }}
+                        onChange={onChangeDate1}
+                        value={dateValue1}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className='col-12'>
-                  <label>End Date</label>
 
-                  <DateTimePicker onChange={onChangeDate2} value={dateValue2} />
+
+                <div className='col-12'>
+                  <div className='form-group row align-items-center'>
+                    <label className='col-sm-3 col-form-label font-weight-bold'>End Date : </label>
+                    <div className='col-sm-9'>
+                      <DateTimePicker className='endDate-time-picker' style={{ border: '1px solid #ccc', borderRadius: '4px' }} onChange={onChangeDate2} value={dateValue2} />
+                    </div>
+                  </div>
                 </div>
+
 
               </MDBModalBody>
 

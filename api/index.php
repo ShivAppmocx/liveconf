@@ -68,7 +68,16 @@ switch ($method_name) {
                                                 case "getRecordings":
                                                     json_output(getRecordings());
                                                     break;  
-                                          
+
+                                                    case "getRecordsToEdit":
+                                                        json_output(getRecordsToEdit());
+                                                        break;  
+
+                                                        case "updateMeetingDetail":
+                                                            json_output(updateMeetingDetail());
+                                                            break;  
+                                                        
+                                                    
                                                 
 
                                                               
@@ -200,6 +209,7 @@ function saveMeetingDetail()
 {    
     $courseName = isset($_REQUEST['courseName']) ? $_REQUEST['courseName'] : '';
     $sectionName = isset($_REQUEST['sectionName']) ? $_REQUEST['sectionName'] : '';
+    $userRole = isset($_REQUEST['userRole']) ? $_REQUEST['userRole'] : '';
     
     $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
 
@@ -231,14 +241,15 @@ function saveMeetingDetail()
     $startDate = isset($_REQUEST['startDate']) ? $_REQUEST['startDate'] : '';
     $endDate = isset($_REQUEST['endDate']) ? $_REQUEST['endDate'] : '';
     $authCode = isset($_REQUEST['authCode']) ? $_REQUEST['authCode'] : '';
-    
+    // echo "<pre>";
+    // var_dump("INSERT INTO `meeting_details` ( `course_name`, `section_name`, `course_id`,`section_id`,`dept_id`,`created_by_userId`,`created_by_userEmail`,`created_by_collegeId`,`virtual_classroom_name`, `welcome_message`, `is_wait_for_moderator`, `is_session_recorded`, `start_date`, `end_date`,`meeting_id`,`is_deleted`) VALUES ( '".$courseName."', '".$sectionName."', '".$courseId."','".$sectionId."','".$deptId."','".$createdByUserId ."','".$createdByUserEmail."','".$createdByCollegeId."','".$virtualClassroomName."', '".$welcomeMessage."', '".$isMod."', '".$isSes."', '". $startDate."', '".$endDate."','".$meetingId."','0')");die;
     $query = "INSERT INTO `meeting_details` ( `course_name`, `section_name`, `course_id`,`section_id`,`dept_id`,`created_by_userId`,`created_by_userEmail`,`created_by_collegeId`,`virtual_classroom_name`, `welcome_message`, `is_wait_for_moderator`, `is_session_recorded`, `start_date`, `end_date`,`meeting_id`,`is_deleted`) VALUES ( '".$courseName."', '".$sectionName."', '".$courseId."','".$sectionId."','".$deptId."','".$createdByUserId ."','".$createdByUserEmail."','".$createdByCollegeId."','".$virtualClassroomName."', '".$welcomeMessage."', '".$isMod."', '".$isSes."', '". $startDate."', '".$endDate."','".$meetingId."','0')"; 
     $insQuery = execute_insert_query($query);
     
     if($insQuery){
         $insertMeetIdValue = $meetingId."-".$sectionId."-".$insQuery;
       
-        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$createdByUserId."', '".$insertMeetIdValue."', 'add')";
+        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`,`user_type`) VALUES ( '".$createdByUserId."', '".$insertMeetIdValue."', 'add', '".$userRole."')";
         $insQueryResp = execute_insert_query($insertQuery);                 
         $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
         return get_generic_response(200, ['meetingName'=>$virtualClassroomName, 'meetingId'=>$meetingId, 'meetingInfo'=>$getMeetingInfoByMeetingId], "Records Addedd Successfully!");
@@ -332,7 +343,11 @@ function createJoinMeetingLink(){
         $isMeetingRunning = ($isMeetingRunning['running']);
         $logValue = "join";
         $role = "VIEWER";
-       
+
+
+        
+        $createTimeFromMeetingInfo = '';
+        
         if($userRole != 1)
         {  
             $role = "MODERATOR";
@@ -351,7 +366,12 @@ function createJoinMeetingLink(){
                 $createMeetingResponse = create_meeting($bbb_meeting_create_opts, BIGBLUE_SECRET, BIGBLUE_URL);
                 if($createMeetingResponse['returncode'] == "SUCCESS" && $logValue == "create")
                 {
-                    $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$userId."', '".$insertMeetIdValue."', '".$logValue."')";
+                    $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
+                    if($getMeetingInfoByMeetingId['returncode'] == "SUCCESS"){
+                        $createTimeFromMeetingInfo = $getMeetingInfoByMeetingId['createTime'];
+                    }
+                   
+                    $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `user_type`,`meeting_id`, `log`,`session_id`) VALUES ( '".$userId."','". $userRole."', '".$insertMeetIdValue."', '".$logValue."','".$createTimeFromMeetingInfo."')";
                     $insQueryResp = execute_insert_query($insertQuery);
                     $logValue = "join";
                 }   
@@ -378,7 +398,12 @@ function createJoinMeetingLink(){
         }
         $joinMeet = join_meeting($bbb_meeting_join_opts, BIGBLUE_SECRET, BIGBLUE_URL);
         $insertMeetIdValue = $meetingId."-".$meetingSectionId."-".$meetingDetailsPrimaryId;
-        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$userId."', '".$insertMeetIdValue."', '".$logValue."')";
+        $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
+        if($getMeetingInfoByMeetingId['returncode'] == "SUCCESS"){
+            $createTimeFromMeetingInfo = $getMeetingInfoByMeetingId['createTime'];
+        }
+      
+        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `user_type`,`meeting_id`, `log`,`session_id`) VALUES ( '".$userId."', '". $userRole."','".$insertMeetIdValue."', '".$logValue."','".$createTimeFromMeetingInfo."')";
         $insQueryResp = execute_insert_query($insertQuery);        
         return get_generic_response(200, $joinMeet, "Meeting Link!");
     // } else {
@@ -582,7 +607,38 @@ function getRecordsToEdit(){
     }
     return get_generic_response(200, [], "Records Addedd Failed!"); 
 }
+function updateMeetingDetail(){
+    $courseName = isset($_REQUEST['courseName']) ? $_REQUEST['courseName'] : '';
+    $sectionName = isset($_REQUEST['sectionName']) ? $_REQUEST['sectionName'] : '';
+    $userRole = isset($_REQUEST['userRole']) ? $_REQUEST['userRole'] : '';
+    
+    $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
 
+    $createdByUserId = isset($_REQUEST['createdByUserId']) ? $_REQUEST['createdByUserId'] : '';
+    $createdByUserEmail = isset($_REQUEST['createdByUserEmail']) ? $_REQUEST['createdByUserEmail'] : '';
+
+    $createdByCollegeId = isset($_REQUEST['createdByCollegeId']) ? $_REQUEST['createdByCollegeId'] : '';
+
+    $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
+    
+    $deptId = isset($_REQUEST['deptId']) ? $_REQUEST['deptId'] : '';
+    
+    $virtualClassroomName = isset($_REQUEST['virtualClassroomName']) ? $_REQUEST['virtualClassroomName'] : '';
+    $welcomeMessage = isset($_REQUEST['welcomeMessage']) ? $_REQUEST['welcomeMessage'] : '';
+    $isWaitForModerator = isset($_REQUEST['isWaitForModerator'])  && $_REQUEST['isWaitForModerator'] == 'true' ? 1 : 0;
+    $isSessionRecorded = isset($_REQUEST['isSessionRecorded']) && $_REQUEST['isSessionRecorded'] === 'true' ? 1 : 0;
+    $meetingId =  isset($_REQUEST['meetingId']) ? $_REQUEST['meetingId'] : '';
+    $startDate = isset($_REQUEST['startDate']) ? date("Y-m-d H:i:s", strtotime($_REQUEST['startDate']))  : '';
+    $endDate = isset($_REQUEST['endDate']) ? date("Y-m-d H:i:s", strtotime($_REQUEST['endDate'])) : '';
+
+    //    var_dump("UPDATE meeting_details SET virtual_classroom_name = '$virtualClassroomName' , welcome_message = '$welcomeMessage',is_wait_for_moderator = '$isWaitForModerator', is_session_recorded= '$isSessionRecorded', `start_date` = '$startDate', `end_date` = '$endDate'  WHERE meeting_id = '$meetingId' ");die;
+    $updateQuery = execute_query("UPDATE meeting_details SET virtual_classroom_name = '$virtualClassroomName' , welcome_message = '$welcomeMessage',is_wait_for_moderator = '$isWaitForModerator', is_session_recorded= '$isSessionRecorded', `start_date` = '$startDate', `end_date` = '$endDate'  WHERE meeting_id = '$meetingId' ");
+    if($updateQuery){
+        return get_generic_response(200, [], "Records Updated Sucessfull!");   
+    }
+    return get_generic_response(400, [], "Records Updated Failed!");   
+    
+}
 
 function getRecordByMeetingId(){
     $meetingId = isset($_REQUEST['meetingId']) ? $_REQUEST['meetingId'] : '';
@@ -615,10 +671,10 @@ function getMeetingInfoByMeetingId($meetingId){
     $url .= "&checksum=" . sha1("getMeetingInfo" . http_build_query($bbb_meeting_create_opts) . BIGBLUE_SECRET);
     // echo "<pre>";
     // var_dump($url);die;
-    // $response = call_curl($url);
+    $response = call_curl($url);
     // echo "<pre>";
     // var_dump($response);die;
-    return $url;
+    return $response;
        
 }  
 

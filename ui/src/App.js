@@ -10,6 +10,7 @@ import DatatableReact from './DatatableReact';
 import Navbar from './Navbar';
 import ModalExample from './ModalExample';
 import FormPage from './FormPage';
+import Accordion from './Accordion';
 
 function App() {
   const [posts, setPosts] = useState([]);
@@ -60,7 +61,9 @@ function App() {
         <Navbar />
         <CourseSectionDataList authCode={auth_code} />
         <ModalExample />
-        <FormPage />
+        {/* <Accordion /> */}
+        
+        {/* <FormPage /> */}
 
         {/* <DatatablePage /> */}
         {/* <DatatableReact authCode={auth_code}/> */}

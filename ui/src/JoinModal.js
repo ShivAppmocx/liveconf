@@ -249,7 +249,7 @@ export default function JoinModal({ rowData, rowIndex, showModal, toggleModal, t
                 <MDBModalDialog>
                     <MDBModalContent>
                         <MDBModalHeader>
-                            <MDBModalTitle>Modal title</MDBModalTitle>
+                            <MDBModalTitle>Meeting List</MDBModalTitle>
                             <MDBBtn className='btn-close' color='none' onClick={toggleModal}></MDBBtn>
                         </MDBModalHeader>
 

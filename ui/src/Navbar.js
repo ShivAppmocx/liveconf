@@ -20,7 +20,7 @@ export default function Navbar() {
     <>
       <MDBNavbar expand='lg' dark bgColor='primary'>
         <MDBContainer fluid>
-          <MDBNavbarBrand href='#'>Navbar</MDBNavbarBrand>
+          <MDBNavbarBrand href='#'>Meetings</MDBNavbarBrand>
           <MDBNavbarToggler
             type='button'
             data-target='#navbarColor02'
@@ -35,10 +35,10 @@ export default function Navbar() {
             <MDBNavbarNav className='me-auto mb-2 mb-lg-0'>
               <MDBNavbarItem className='active'>
                 <MDBNavbarLink aria-current='page' href='#'>
-                  Home
+                  Reports
                 </MDBNavbarLink>
               </MDBNavbarItem>
-              <MDBNavbarItem>
+              {/* <MDBNavbarItem>
                 <MDBNavbarLink href='#'>Features</MDBNavbarLink>
               </MDBNavbarItem>
               <MDBNavbarItem>
@@ -46,7 +46,7 @@ export default function Navbar() {
               </MDBNavbarItem>
               <MDBNavbarItem>
                 <MDBNavbarLink href='#'>About</MDBNavbarLink>
-              </MDBNavbarItem>
+              </MDBNavbarItem> */}
             </MDBNavbarNav>
           </MDBCollapse>
         </MDBContainer>
