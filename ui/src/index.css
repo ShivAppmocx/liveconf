@@ -39,6 +39,10 @@ code {
   box-sizing: border-box;
 }
 
+.navparentClass{
+  background-color: #7A319F;
+}
+
 /* body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 20px;

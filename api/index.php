@@ -194,14 +194,30 @@ function getFacultySectionDetail(){
      $callAPI = APICall('POST', BASE_URL, $encodedParameters, $headers);
      $apiData = (json_decode($callAPI));
      $getFacultySectionDetail = isset($apiData->data->getFacultySectionDetail) ? $apiData->data->getFacultySectionDetail : [];
-   
-     $data_arr['getFacultySectionDetail'] = [];
-     $data_arr['getCreatedCourseSectionList'] = getCreatedCourseSectionList( $myArray);
-     
-     if (count($getFacultySectionDetail)) {
-        ($data_arr['getFacultySectionDetail'] =  $getFacultySectionDetail);
-    }
-    return get_generic_response(200, $data_arr, "Records Found!");
+    
+        $groupedData = [];
+
+        foreach ($getFacultySectionDetail as $item) {
+            // if($item->is_archive == 0){
+                $courseId = $item->course_id;
+                $sectionId = $item->section_id;
+                $key = "{$courseId}_{$sectionId}";
+                if (!isset($groupedData[$key])) {
+                    $groupedData[$key] = [];
+                }
+                $groupedData[$key] = $item;
+            // }
+        }
+
+        $groupedArray = array_values($groupedData);
+        
+        $data_arr['getFacultySectionDetail'] = [];
+        $data_arr['getCreatedCourseSectionList'] = getCreatedCourseSectionList( $myArray);
+        
+        if (count($getFacultySectionDetail)) {
+            ($data_arr['getFacultySectionDetail'] =  $groupedArray);
+        }
+        return get_generic_response(200, $data_arr, "Records Found!");
 }
     
 
