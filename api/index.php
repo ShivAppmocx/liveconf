@@ -712,5 +712,4 @@ function getRecordings(){
     $url .= "&checksum=" . sha1("getRecordings" . http_build_query($bbb_meeting_recording_opts) . BIGBLUE_SECRET);
     $response = call_curl($url);
    return $response;
-
 }

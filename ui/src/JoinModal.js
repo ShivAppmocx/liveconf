@@ -159,6 +159,7 @@ export default function JoinModal({ rowData, rowIndex, showModal, toggleModal, t
                 "method": "getRecordings",
                 "meetingId": selectedOption.value,
             };
+
             axios.get(apiPath, { params: joinParams })
                 .then(response => {
                     console.log('RESPO',response);
@@ -170,18 +171,26 @@ export default function JoinModal({ rowData, rowIndex, showModal, toggleModal, t
                     if (response.data.returncode == "SUCCESS") {
                         // let recUrl = response.data.recordings.recording.playback.format.url;
                         let recUrl = response.data.recordings.recording;
-                        
-                        // const options1 = ({
-                        //     value: `${recUrl}`,
-                        //     label: `${recUrl}`,
-                        // });
-                        
-                        const options1 = recUrl.map((rec, index) => ({
+                        const arrayLength = recUrl.length;
+
+                        // Print the number of elements in the array to the console.
+                       var options1 = '';
+                       console.log('arrayLength',arrayLength);
+
+                        if(arrayLength == undefined){
+                            options1 = [({
+                                value: `${recUrl.playback.format.url.toString()}`,
+                                label: `Recording1`,
+                            })];
+                         
+                       }else if(arrayLength > 0){
+                         options1 = recUrl.map((rec, index) => ({
                             value:rec.playback.format.url.toString(),
                             label: `Recording ${index + 1}`,
-                          
                         }));
-                       
+                       }
+                        console.log('resUrl',options1);
+                        
                         setRecordingOptions(options1);
                         sethasRecording(true);
                     }

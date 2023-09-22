@@ -18,7 +18,7 @@ export default function Navbar() {
 
   return (
     <>
-      <MDBNavbar   expand='lg' dark bgColor='#7A319F'>
+      <MDBNavbar   expand='lg' dark style={{ backgroundColor: '#7A319F' }}>
         <MDBContainer fluid >
           <MDBNavbarBrand href='#'>Meetings</MDBNavbarBrand>
           <MDBNavbarToggler
