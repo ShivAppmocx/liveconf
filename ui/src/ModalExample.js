@@ -45,7 +45,7 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
     if (getRecordByMeetingId) {
       vClassName = getRecordByMeetingId.virtual_classroom_name;
       welMsg = getRecordByMeetingId.welcome_message;
-      console.log('inn', vClassName);
+    
     }
   }
 
@@ -89,7 +89,7 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
       userRole: userRole
     };
 
-  console.log('initialFormValue', initialFormValue);
+
 
   const [formValue, setFormValue] = useState(initialFormValue);
 
@@ -142,13 +142,16 @@ export default function ModalExample({ rowData, rowIndex, showModal, toggleModal
     axios
       .get(apiPath, { params })
       .then(response => {
-        console.log('resp', response);
+     
         let respMeetingId = response.data.data.meetingId;
         let respMeetingName = response.data.data.meetingName;
         // createMeeting(respMeetingId, respMeetingName);
         if (response.data.status_code == 200) {
           alert(`Meeting with meeting id ${response.data.data.meetingId} has been Created and Saved Successfully!`);
+          return true;
         }
+        alert(`Meeting creation failed, It may already exist!`);
+        
       })
       .catch(error => {
         console.error(error);

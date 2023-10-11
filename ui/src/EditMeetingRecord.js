@@ -51,7 +51,7 @@ export default function EditMeetingRecord({ rowData, rowIndex, showModal, toggle
 
     if (editRowData) {
       const [firstRowData] = editRowData; // Assuming editRowData is an array
-      console.log('firstRo', firstRowData);
+      // console.log('firstRo', firstRowData);
       setIsWaitForModerator(firstRowData.is_wait_for_moderator === 1);
       setIsSessionRecorded(firstRowData.is_session_recorded === 1);
 
@@ -146,12 +146,12 @@ export default function EditMeetingRecord({ rowData, rowIndex, showModal, toggle
     axios
       .get(apiPath, { params })
       .then(response => {
-        console.log('resp', response);
+        // console.log('resp', response);
         let respMeetingId = response.data.data.meetingId;
         let respMeetingName = response.data.data.meetingName;
         // createMeeting(respMeetingId, respMeetingName);
         if (response.data.status_code == 200) {
-          alert(`Meeting with meeting id ${response.data.data.meetingId} has been Created and Saved Successfully!`);
+          alert(`Meeting Details has been updated successfully!`);
         }
       })
       .catch(error => {

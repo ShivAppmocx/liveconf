@@ -6,29 +6,31 @@ import apiPath from './includes/config';
 import CourseSectionDataList from './CourseSectionDataList';
 import DatatablePage from './DatatablePage';
 import DatatableReact from './DatatableReact';
-
+import ReactDOM from 'react-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import ModalExample from './ModalExample';
 import FormPage from './FormPage';
 import Accordion from './Accordion';
+import NavTest from './NavTest';
+import SummaryReport from './SummaryReport';
+import DetailedReport from './DetailedReport';
+import TicTakToe from './TicTakToe';
+import Reports from './Reports';
+import NotFound from './NotFound';
 
-function App() {
-  const [posts, setPosts] = useState([]);
+function AppContent({ authCode }) {
   const [auth, setAuth] = useState(false);
 
-  var query = window.location.search;
-  var paramters = new URLSearchParams(query);
-  var auth_code = paramters.get('auth_code');
   const params = useMemo(
     () => ({
       method: 'auth_function',
-      auth: auth_code,
+      auth: authCode,
     }),
-    [auth_code]
+    [authCode]
   );
 
   useEffect(() => {
-  
     const setLocalStorageData = (data) => {
       let dta = data;
       localStorage.setItem("ReqData", JSON.stringify(dta));
@@ -38,11 +40,11 @@ function App() {
       .get(apiPath, { params })
       .then(response => {
         let data = response.data.data;
+        console.log('data',data);
         let dataLength = Object.keys(data.userDetails).length;
         if (!dataLength) {
           alert('Invalid Auth!');
           setAuth(false);
-          return;
         } else {
           setAuth(true);
           setLocalStorageData(data)
@@ -54,26 +56,37 @@ function App() {
   }, [params]);
 
   return (
-    <div>
-      {/* <h1>User Authentication!</h1> */}
+    <Router>
       {auth ? (
         <>
-        <Navbar />
-        <CourseSectionDataList authCode={auth_code} />
-        <ModalExample />
-        {/* <Accordion /> */}
-        
-        {/* <FormPage /> */}
-
-        {/* <DatatablePage /> */}
-        {/* <DatatableReact authCode={auth_code}/> */}
-        {/* <p>You are logged in!</p> */}
+          <Navbar authCode={authCode} />
+          <ModalExample />
+          {/* Render other components based on routes */}
+          <Routes>
+            <Route path="/" element={<CourseSectionDataList authCode={authCode} />} />
+            <Route path="/summary_report" element={<SummaryReport />} />
+            <Route path="/detailed_report" element={<DetailedReport />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </>
-   
       ) : (
         <p></p>
       )}
-    </div>);
+    </Router>
+  );
+}
+
+function App() {
+  var query = window.location.search;
+  var paramters = new URLSearchParams(query);
+  var auth_code = paramters.get('auth_code');
+
+  return (
+    <div>
+      {/* Pass authCode to the AppContent component */}
+      <AppContent authCode={auth_code} />
+    </div>
+  );
 }
 
 export default App;

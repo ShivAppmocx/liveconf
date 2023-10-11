@@ -40,8 +40,7 @@ const DatatableReact = (props) =>  {
               });
           }, [params]);
 
-        //   console.log(facultySectionData, 'facultySectionData');
-
+    
 
   const columns = [
     {
@@ -67,9 +66,7 @@ const DatatableReact = (props) =>  {
 
 //   const [records, setRecords] = useState(data);
   const handleFilter = (event) => {
-    // console.log('data',records);
     const newData = records.filter((row) => {
-        console.log('aa',row);
     //   return row.name.toLowerCase().includes(event.target.value.toLowerCase());
     return (row.course_name ?? '').toLowerCase().includes(event.target.value.toLowerCase());
     })
