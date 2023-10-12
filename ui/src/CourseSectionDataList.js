@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 import { MDBDataTable, MDBBtn } from 'mdbreact';
 import JoinModal from './JoinModal';
 import ModalExample from './ModalExample';

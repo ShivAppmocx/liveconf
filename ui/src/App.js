@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
-import apiPath from './includes/config';
+
+import { apiPath, preURLValue } from './includes/config.js';
+
 import CourseSectionDataList from './CourseSectionDataList';
 import DatatablePage from './DatatablePage';
 import DatatableReact from './DatatableReact';
@@ -63,9 +65,9 @@ function AppContent({ authCode }) {
           <ModalExample />
           {/* Render other components based on routes */}
           <Routes>
-            <Route path="/" element={<CourseSectionDataList authCode={authCode} />} />
-            <Route path="/summary_report" element={<SummaryReport />} />
-            <Route path="/detailed_report" element={<DetailedReport />} />
+            <Route path={preURLValue} element={<CourseSectionDataList authCode={authCode} />} />
+            <Route path={preURLValue+"summary_report"} element={<SummaryReport />} />
+            <Route path={preURLValue+"detailed_report"} element={<DetailedReport />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </>

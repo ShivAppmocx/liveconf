@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 
 const DatatableReact = (props) =>  {
 

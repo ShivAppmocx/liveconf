@@ -19,7 +19,7 @@ import {
 } from 'mdb-react-ui-kit';
 import axios from 'axios';
 import { DateTimePicker } from 'react-datetime-picker';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 import CryptoJS from 'crypto-js';
 import * as qs from 'qs';
 import Select from 'react-select';

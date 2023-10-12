@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 import Select from 'react-select';
 import $ from 'jquery';
 
@@ -49,7 +49,7 @@ const DetailedReport = (props) => {
         const getSectionByCourseParams = {
             method: "getCSVDataforDetailedReport",
             sectionId: selectedSectionOption.value,
-            date: selectedDateOption.label
+            date: selectedDateOption.value
         };
 
         axios
@@ -95,18 +95,9 @@ const DetailedReport = (props) => {
                 let dateList = respData.dateData;
                 dateList = Object.values(dateList);
                 var createdAtOptions = dateList.map((val1, index) => {
-                    const dateString = val1.created_at;
-                    const dateObject = new Date(dateString);
-
-                    const year = dateObject.getFullYear();
-                    const month = dateObject.getMonth() + 1; // Months are zero-based, so add 1
-                    const day = dateObject.getDate();
-
-                    const formattedDate = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
-
                     return {
-                        value: val1, // Use the formatted date as the 'value'
-                        label: formattedDate, // Use the formatted date as the 'label'
+                        value: val1.session_id, // Use the formatted date as the 'value'
+                        label: val1.timestamp, // Use the formatted date as the 'label'
                     };
                 });
                 setDateOptions(createdAtOptions);

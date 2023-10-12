@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useLocation, useNavigate } from 'react-router-dom';
-
+import { apiPath, preURLValue } from './includes/config.js';
 import SummaryReport from './SummaryReport';
 import DetailedReport from './DetailedReport';
 import Reports from './Reports';
@@ -41,7 +41,7 @@ export default function Navbar(props) {
     <div>
       <MDBNavbar expand='lg' dark style={{ backgroundColor: '#7A319F' }}>
         <MDBContainer fluid>
-          <MDBNavbarBrand href={`/?auth_code=${auth_code}`}>Meetings</MDBNavbarBrand>
+          <MDBNavbarBrand href={`${preURLValue}?auth_code=${auth_code}`}>Meetings</MDBNavbarBrand>
 
           <MDBNavbarToggler
             type='button'
@@ -67,11 +67,11 @@ export default function Navbar(props) {
                 Reports
               </Dropdown.Toggle>
               <Dropdown.Menu>
-                <Dropdown.Item onClick={() => navigate(`/summary_report?auth_code=${auth_code}`)}>
+                <Dropdown.Item onClick={() => navigate(`${preURLValue}summary_report?auth_code=${auth_code}`)}>
                   Summary Report
                 </Dropdown.Item>
                 {/* <Dropdown.Item as={Link} to={`summary_report?auth_code=${auth_code}`}>Summary Report</Dropdown.Item> */}
-                <Dropdown.Item as={Link} to={`/detailed_report?auth_code=${auth_code}`}>Detailed report</Dropdown.Item>
+                <Dropdown.Item as={Link} to={`${preURLValue}detailed_report?auth_code=${auth_code}`}>Detailed report</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </MDBCollapse>

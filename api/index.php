@@ -767,12 +767,11 @@ function getSectionforSummaryReport(){
         $resultData['sectionData'][$val['section_id']] = $val; 
     }  
     foreach($data as $val){
-        $dateTime = new DateTime($val['created_at']);
-        $formattedDate = $dateTime->format("Y-m-d");
-        // echo $formattedDate;
-        $resultData['dateData'][$formattedDate] = $val; 
-    }  
-    
+        $timestamp_seconds = $val['session_id'] / 1000;
+        $formatted_date = date("Y-m-d H:i", $timestamp_seconds);
+        $val['timestamp'] = $formatted_date;
+        $resultData['dateData'][$val['session_id']] = $val;
+    }
     if(count( $resultData )){
         return get_generic_response(200, $resultData, "Records Addedd Failed!");   
     }
@@ -811,7 +810,7 @@ function getCSVDataforDetailedReport(){
             LEFT JOIN attendees_analytics aa ON
                 aa.session_id = ml.session_id AND ml.usn = aa.usn
             WHERE
-                md.section_id = $sectionId AND ml.user_type = 1 AND ml.created_at LIKE '%".$date."%'
+                md.section_id = $sectionId AND ml.user_type = 1 AND ml.session_id = '".$date."'
             GROUP BY
                 1,
                 2,

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 import Select from 'react-select';
 import {
     MDBBtn,
