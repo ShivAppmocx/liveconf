@@ -17,7 +17,6 @@ import Accordion from './Accordion';
 import NavTest from './NavTest';
 import SummaryReport from './SummaryReport';
 import DetailedReport from './DetailedReport';
-import TicTakToe from './TicTakToe';
 import Reports from './Reports';
 import NotFound from './NotFound';
 
