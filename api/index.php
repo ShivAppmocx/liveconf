@@ -103,6 +103,11 @@ switch ($method_name) {
                                                                                     json_output(getSessionDateByCourseSection());
                                                                                     break;
 
+                                                                                    case "getMoodleAssessmentCSVReport":
+                                                                                        json_output(getMoodleAssessmentCSVReport());
+                                                                                        break;
+                                                                                
+                                                                                    
                                                                                 
                                                                             
 
@@ -924,4 +929,96 @@ function getSessionDateByCourseSection(){
         // $requiredDateValues = array_values($requiredDate);
 
         return get_generic_response(200, $requiredDate, "Records Found Successfully!");   
+}
+
+
+function getMoodleAssessmentCSVReport(){
+    $college_id = 1;
+    $course_id = 1;
+    $section_id = 4;
+    $auth = "ZTg1N2UyYTlkOGNkOGJkOWY5NGQwZjcw"; 
+    $myArray = [
+        "auth" => $auth,
+        "course_id" => $course_id,
+        "college_id" => $college_id,
+        "section_id" => $section_id
+    ];
+    $aa_var = (form_rester_api_object("getMoodleAssessmentReport", $myArray));
+   
+    $var = (json_encode([$aa_var]));
+    $headers = array('x-auth-key: ' . $auth);
+    $ab_var = APICall('POST', BASE_URL, $var, $headers);
+    $apiData = (json_decode($ab_var));
+    $getMoodleAssessmentReport = isset($apiData->data->getMoodleAssessmentReport) ? $apiData->data->getMoodleAssessmentReport : [];
+
+    $csvFile = fopen('output.csv', 'w');
+
+    // Define a dynamic CSV header based on the unique activity names in the data
+    $header = ['name', 'usn', 'email'];
+    foreach ($getMoodleAssessmentReport as $row) {
+        if (isset($row->activity_name) && !in_array($row->activity_name, $header)) {
+            $header[] = $row->activity_name;
+        }
+    }
+    
+    fputcsv($csvFile, $header);
+    
+    $userDatas = [];
+    $scoreSums = []; // Initialize an array to store score sums
+    
+    foreach ($getMoodleAssessmentReport as $row) {
+        $key = $row->user_id.":-:".$row->usn.":-:".$row->email;
+    
+        if (!isset($userIds[$key])) {
+            $userIds[$key] = []; // Initialize the user data array
+            $scoreSums[$key] = []; // Initialize the score sum array for this user
+        }
+    
+        $userIds[$key][] = $row;
+    
+        // Assuming 'score_key' is the actual key for the score in your data
+        if (isset($row->score)) {
+            if ($row->score != "NA") {
+                // Store the score in the user's score sum array, using the activity name as the key
+                $scoreSums[$key][$row->activity_name] = $row->score;
+            }
+        }
+    }
+  
+    // Now $scoreSums contains the score sums for each user
+    // You can generate the CSV rows based on the header and score sums
+    foreach ($userIds as $key => $userData) {
+        $userDataArray = explode(":-:", $key);
+        $csvRow = [
+            $userDataArray[0], // name
+            $userDataArray[1], // usn
+            $userDataArray[2], // email
+        ];
+    
+        // Loop through the header to add scores for each activity
+        for ($i = 3; $i < count($header); $i++) {
+            $activityName = $header[$i];
+    
+            // Check if the activity name exists in the $scoreSums array for this user
+            if (isset($scoreSums[$key][$activityName])) {
+                $csvRow[] = $scoreSums[$key][$activityName];
+            } else {
+                $csvRow[] = 0; // If there is no score, add 0
+            }
+        }
+    
+        fputcsv($csvFile, $csvRow);
+    }
+    fclose($csvFile);
+    
+
+    // Download the CSV file
+    header('Content-Type: application/csv');
+    header('Content-Disposition: attachment; filename="output.csv"');
+    readfile('output.csv');
+
+    // You can also delete the CSV file if needed
+    unlink('output.csv');
+
+
 }
