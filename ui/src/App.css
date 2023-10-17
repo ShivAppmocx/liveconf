@@ -42,3 +42,24 @@
     transform: rotate(360deg);
   }
 }
+
+#dropdown-basic{
+  background: transparent;
+    box-shadow: none;
+}
+
+#summarySubmitButton{
+  padding-top: 27px;
+}
+
+#detailedHeading{
+  text-align: center;
+}
+#summaryHeading {
+  text-align: center;
+}
+
+
+#DetailedSubmitButton{
+  padding-top: 40px;
+}

@@ -68,16 +68,57 @@ switch ($method_name) {
                                                 case "getRecordings":
                                                     json_output(getRecordings());
                                                     break;  
-                                          
-                                                
 
-                                                              
+                                                    case "getRecordsToEdit":
+                                                        json_output(getRecordsToEdit());
+                                                        break;  
+
+                                                        case "updateMeetingDetail":
+                                                            json_output(updateMeetingDetail());
+                                                            break; 
+                                                            
+                                                            
+                                                            case "getCourseforSummaryReport":
+                                                                json_output(getCourseforSummaryReport());
+                                                                break; 
+
+                                                                case "getSectionforSummaryReport":
+                                                                    json_output(getSectionforSummaryReport());
+                                                                    break; 
+
+                                                                    case "getCSVDataforSummaryReport":
+                                                                        (getCSVDataforSummaryReport());
+                                                                        break;
+
+                                                                        case "getCSVDataforDetailedReport":
+                                                                            (getCSVDataforDetailedReport());
+                                                                            break;
+                                                                            
+                                                                            
+                                                                            case "saveAttendeeDetails":
+                                                                                json_output(saveAttendeeDetails());
+                                                                                break;
+
+                                                                                case "getSessionDateByCourseSection":
+                                                                                    json_output(getSessionDateByCourseSection());
+                                                                                    break;
+
+                                                                                    case "getMoodleAssessmentCSVReport":
+                                                                                        json_output(getMoodleAssessmentCSVReport());
+                                                                                        break;
+                                                                                
+                                                                                    
+                                                                                
+                                                                            
 
     }
     
 $bbb_url = BIGBLUE_URL;
 $bbb_secret = BIGBLUE_SECRET;
 
+// echo "<pre>";
+// var_dump($bbb_url);
+// var_dump($bbb_secret);die;
 function auth_function()
 {
     $auth = isset($_REQUEST['auth']) ? $_REQUEST['auth'] : '';
@@ -106,8 +147,6 @@ function auth_function()
             array_push($data_arr['clgDetails'], $getClgFilteredData[0]);
             $getDeptData = getDepartmentDetails( $getClgFilteredData[0]->college_id, $userId, $auth);    
             
-            // echo "<pre>";
-            // var_dump($getDeptData);die;
             if (is_array($getDeptData) || is_object($getDeptData)) {
                 if (count($getDeptData) ) {
                     array_push($data_arr['deptDetails'], $getDeptData[0]);
@@ -185,14 +224,30 @@ function getFacultySectionDetail(){
      $callAPI = APICall('POST', BASE_URL, $encodedParameters, $headers);
      $apiData = (json_decode($callAPI));
      $getFacultySectionDetail = isset($apiData->data->getFacultySectionDetail) ? $apiData->data->getFacultySectionDetail : [];
-   
-     $data_arr['getFacultySectionDetail'] = [];
-     $data_arr['getCreatedCourseSectionList'] = getCreatedCourseSectionList( $myArray);
-     
-     if (count($getFacultySectionDetail)) {
-        ($data_arr['getFacultySectionDetail'] =  $getFacultySectionDetail);
-    }
-    return get_generic_response(200, $data_arr, "Records Found!");
+    
+        $groupedData = [];
+
+        foreach ($getFacultySectionDetail as $item) {
+            if($item->is_archived == 0){
+                $courseId = $item->course_id;
+                $sectionId = $item->section_id;
+                $key = "{$courseId}_{$sectionId}";
+                if (!isset($groupedData[$key])) {
+                    $groupedData[$key] = [];
+                }
+                $groupedData[$key] = $item;
+            }
+        }
+
+        $groupedArray = array_values($groupedData);
+        
+        $data_arr['getFacultySectionDetail'] = [];
+        $data_arr['getCreatedCourseSectionList'] = getCreatedCourseSectionList( $myArray);
+        
+        if (count($getFacultySectionDetail)) {
+            ($data_arr['getFacultySectionDetail'] =  $groupedArray);
+        }
+        return get_generic_response(200, $data_arr, "Records Found!");
 }
     
 
@@ -200,6 +255,7 @@ function saveMeetingDetail()
 {    
     $courseName = isset($_REQUEST['courseName']) ? $_REQUEST['courseName'] : '';
     $sectionName = isset($_REQUEST['sectionName']) ? $_REQUEST['sectionName'] : '';
+    $userRole = isset($_REQUEST['userRole']) ? $_REQUEST['userRole'] : '';
     
     $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
 
@@ -231,19 +287,22 @@ function saveMeetingDetail()
     $startDate = isset($_REQUEST['startDate']) ? $_REQUEST['startDate'] : '';
     $endDate = isset($_REQUEST['endDate']) ? $_REQUEST['endDate'] : '';
     $authCode = isset($_REQUEST['authCode']) ? $_REQUEST['authCode'] : '';
-    
-    $query = "INSERT INTO `meeting_details` ( `course_name`, `section_name`, `course_id`,`section_id`,`dept_id`,`created_by_userId`,`created_by_userEmail`,`created_by_collegeId`,`virtual_classroom_name`, `welcome_message`, `is_wait_for_moderator`, `is_session_recorded`, `start_date`, `end_date`,`meeting_id`,`is_deleted`) VALUES ( '".$courseName."', '".$sectionName."', '".$courseId."','".$sectionId."','".$deptId."','".$createdByUserId ."','".$createdByUserEmail."','".$createdByCollegeId."','".$virtualClassroomName."', '".$welcomeMessage."', '".$isMod."', '".$isSes."', '". $startDate."', '".$endDate."','".$meetingId."','0')"; 
+    // echo "<pre>";
+    // var_dump("INSERT INTO `meeting_details` ( `course_name`, `section_name`, `course_id`,`section_id`,`dept_id`,`user_id`,`email`,`college_id`,`virtual_classroom_name`, `welcome_message`, `is_wait_for_moderator`, `is_session_recorded`, `start_date`, `end_date`,`meeting_id`,`is_deleted`) VALUES ( '".$courseName."', '".$sectionName."', '".$courseId."','".$sectionId."','".$deptId."','".$createdByUserId ."','".$createdByUserEmail."','".$createdByCollegeId."','".$virtualClassroomName."', '".$welcomeMessage."', '".$isMod."', '".$isSes."', '". $startDate."', '".$endDate."','".$meetingId."','0')");die;
+    $query = "INSERT INTO `meeting_details` ( `course_name`, `section_name`, `course_id`,`section_id`,`dept_id`,`user_id`,`email`,`college_id`,`virtual_classroom_name`, `welcome_message`, `is_wait_for_moderator`, `is_session_recorded`, `start_date`, `end_date`,`meeting_id`,`is_deleted`) VALUES ( '".$courseName."', '".$sectionName."', '".$courseId."','".$sectionId."','".$deptId."','".$createdByUserId ."','".$createdByUserEmail."','".$createdByCollegeId."','".$virtualClassroomName."', '".$welcomeMessage."', '".$isMod."', '".$isSes."', '". $startDate."', '".$endDate."','".$meetingId."','0')"; 
     $insQuery = execute_insert_query($query);
     
     if($insQuery){
         $insertMeetIdValue = $meetingId."-".$sectionId."-".$insQuery;
       
-        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$createdByUserId."', '".$insertMeetIdValue."', 'add')";
+        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`,`user_type`) VALUES ( '".$createdByUserId."', '".$insertMeetIdValue."', 'add', '".$userRole."')";
         $insQueryResp = execute_insert_query($insertQuery);                 
         $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
-        return get_generic_response(200, ['meetingName'=>$virtualClassroomName, 'meetingId'=>$meetingId, 'meetingInfo'=>$getMeetingInfoByMeetingId], "Records Addedd Successfully!");
+        if($getMeetingInfoByMeetingId){
+            return get_generic_response(200, ['meetingName'=>$virtualClassroomName, 'meetingId'=>$meetingId, 'meetingInfo'=>$getMeetingInfoByMeetingId], "Records Addedd Successfully!");
+        }
     }
-    return get_generic_response(200, ['meetingName'=>'', 'meetingId'=>'', 'meetingInfo'=>''], "Records Addedd Successfully!");
+    return get_generic_response(400, ['meetingName'=>'', 'meetingId'=>'', 'meetingInfo'=>''], "Records Addedd Failed!");
     
     
 }
@@ -259,11 +318,11 @@ function getCreatedMeetingList(){
     $userType = isset($_REQUEST['userType']) ? $_REQUEST['userType'] : '';
     $queryCondition = '';
     if($userType == 5 || $userType == 6 ||  $userType == 10){
-        $queryCondition = "AND created_by_userId = '".$userId."' AND created_by_userEmail = '".$userEmail."'  ";
+        $queryCondition = "AND user_id = '".$userId."' AND email = '".$userEmail."'  ";
     }
 
     $getDataQuery = execute_query("SELECT DISTINCT(meeting_id),virtual_classroom_name from meeting_details where  section_id = '".$sectionId."' ". $queryCondition." AND is_deleted = 0");
-    // $getDataQuery = execute_query("SELECT DISTINCT(meeting_id),virtual_classroom_name from meeting_details where dept_id = '".$deptId."' AND course_id = '".$courseId."' AND section_id = '".$sectionId."' AND created_by_userId = '".$userId."' AND created_by_userEmail = '".$userEmail."' ");
+    // $getDataQuery = execute_query("SELECT DISTINCT(meeting_id),virtual_classroom_name from meeting_details where dept_id = '".$deptId."' AND course_id = '".$courseId."' AND section_id = '".$sectionId."' AND user_id = '".$userId."' AND email = '".$userEmail."' ");
   
     $resMeetingIds = ToArrays($getDataQuery);
     if(count( $resMeetingIds )){
@@ -278,9 +337,9 @@ function getCreatedCourseSectionList($myArray=''){
     $collegeId = isset($myArray['college_id']) ? $myArray['college_id'] : '';
     $queryCondition = "";
     if($userId!='' && $collegeId!=''){
-        $queryCondition = "Where created_by_collegeId = ".$collegeId." AND created_by_userId = ".$userId."";
+        $queryCondition = "AND college_id = ".$collegeId." AND user_id = ".$userId."  ";
     }
-    $getDataQuery = execute_query("SELECT DISTINCT course_id,section_id,course_name,section_name from meeting_details ".$queryCondition." ");
+    $getDataQuery = execute_query("SELECT DISTINCT course_id,section_id,course_name,section_name from meeting_details WHERE is_deleted = 0  ".$queryCondition." ");
     $resMeetingIds = ToArrays($getDataQuery);
     if(count( $resMeetingIds )){
         // return get_generic_response(200, $resMeetingIds, "Records Addedd Failed!");   
@@ -328,11 +387,12 @@ function createJoinMeetingLink(){
         );
 
         $isMeetingRunning = isMeetingRunning($bbb_meeting_running_opts, BIGBLUE_SECRET, BIGBLUE_URL);
-        
         $isMeetingRunning = ($isMeetingRunning['running']);
         $logValue = "join";
         $role = "VIEWER";
-       
+
+        $createTimeFromMeetingInfo = '';
+        
         if($userRole != 1)
         {  
             $role = "MODERATOR";
@@ -351,7 +411,12 @@ function createJoinMeetingLink(){
                 $createMeetingResponse = create_meeting($bbb_meeting_create_opts, BIGBLUE_SECRET, BIGBLUE_URL);
                 if($createMeetingResponse['returncode'] == "SUCCESS" && $logValue == "create")
                 {
-                    $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$userId."', '".$insertMeetIdValue."', '".$logValue."')";
+                    $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
+                    if($getMeetingInfoByMeetingId['returncode'] == "SUCCESS"){
+                        $createTimeFromMeetingInfo = $getMeetingInfoByMeetingId['createTime'];
+                    }
+                   
+                    $insertQuery = "INSERT INTO `meeting_logs` ( `meeting_details_id`,`user_id`,`usn`,`email`, `user_type`,`meeting_id`, `log`,`session_id`) VALUES ( '".$meetingDetailsPrimaryId."','".$userId."','".$userUsn."','".$userEmail."','". $userRole."', '".$insertMeetIdValue."', '".$logValue."','".$createTimeFromMeetingInfo."')";
                     $insQueryResp = execute_insert_query($insertQuery);
                     $logValue = "join";
                 }   
@@ -378,7 +443,12 @@ function createJoinMeetingLink(){
         }
         $joinMeet = join_meeting($bbb_meeting_join_opts, BIGBLUE_SECRET, BIGBLUE_URL);
         $insertMeetIdValue = $meetingId."-".$meetingSectionId."-".$meetingDetailsPrimaryId;
-        $insertQuery = "INSERT INTO `meeting_logs` ( `user_id`, `meeting_id`, `log`) VALUES ( '".$userId."', '".$insertMeetIdValue."', '".$logValue."')";
+        $getMeetingInfoByMeetingId = getMeetingInfoByMeetingId($meetingId);
+        if($getMeetingInfoByMeetingId['returncode'] == "SUCCESS"){
+            $createTimeFromMeetingInfo = $getMeetingInfoByMeetingId['createTime'];
+        }
+      
+        $insertQuery = "INSERT INTO `meeting_logs` ( `meeting_details_id`,`user_id`,`usn`,`email`, `user_type`,`meeting_id`, `log`,`session_id`) VALUES ( '".$meetingDetailsPrimaryId."', '".$userId."','".$userUsn."','".$userEmail."','". $userRole."','".$insertMeetIdValue."', '".$logValue."','".$createTimeFromMeetingInfo."')";
         $insQueryResp = execute_insert_query($insertQuery);        
         return get_generic_response(200, $joinMeet, "Meeting Link!");
     // } else {
@@ -411,8 +481,6 @@ function callMeet(){
 }
 
 function joinMeet(){
-   
-    
     
     $bbb_meeting_join_opts = array(
         "fullName" => "Test User",
@@ -466,6 +534,7 @@ function create_meeting($bbb_meeting_create_opts, $bbb_secret, $bbb_url)
 function isMeetingRunning($bbb_meeting_running_opts, $bbb_secret, $bbb_url){
     $url = $bbb_url . "isMeetingRunning?" . http_build_query($bbb_meeting_running_opts);
     $url .= "&checksum=" . sha1("isMeetingRunning" . http_build_query($bbb_meeting_running_opts) . $bbb_secret);
+   
     $response = call_curl($url);
     return $response;
 
@@ -575,14 +644,45 @@ function getRecordsToEdit(){
     $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
     $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
     $userType = isset($_REQUEST['userType']) ? $_REQUEST['userType'] : '';
-     $getDataQuery = execute_query("SELECT DISTINCT(meeting_id),virtual_classroom_name, welcome_message, is_wait_for_moderator, is_session_recorded, `start_date`, end_date from meeting_details where  section_id = '".$sectionId."' AND created_by_userId = '".$userId."' AND created_by_userEmail = '".$userEmail."' AND is_deleted=0");
+     $getDataQuery = execute_query("SELECT DISTINCT(meeting_id),virtual_classroom_name, welcome_message, is_wait_for_moderator, is_session_recorded, `start_date`, end_date from meeting_details where  section_id = '".$sectionId."' AND user_id = '".$userId."' AND email = '".$userEmail."' AND is_deleted=0");
     $data = ToArrays($getDataQuery);     
     if(count( $data )){
         return get_generic_response(200, $data, "Records Addedd Failed!");   
     }
     return get_generic_response(200, [], "Records Addedd Failed!"); 
 }
+function updateMeetingDetail(){
+    $courseName = isset($_REQUEST['courseName']) ? $_REQUEST['courseName'] : '';
+    $sectionName = isset($_REQUEST['sectionName']) ? $_REQUEST['sectionName'] : '';
+    $userRole = isset($_REQUEST['userRole']) ? $_REQUEST['userRole'] : '';
+    
+    $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
 
+    $createdByUserId = isset($_REQUEST['createdByUserId']) ? $_REQUEST['createdByUserId'] : '';
+    $createdByUserEmail = isset($_REQUEST['createdByUserEmail']) ? $_REQUEST['createdByUserEmail'] : '';
+
+    $createdByCollegeId = isset($_REQUEST['createdByCollegeId']) ? $_REQUEST['createdByCollegeId'] : '';
+
+    $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
+    
+    $deptId = isset($_REQUEST['deptId']) ? $_REQUEST['deptId'] : '';
+    
+    $virtualClassroomName = isset($_REQUEST['virtualClassroomName']) ? $_REQUEST['virtualClassroomName'] : '';
+    $welcomeMessage = isset($_REQUEST['welcomeMessage']) ? $_REQUEST['welcomeMessage'] : '';
+    $isWaitForModerator = isset($_REQUEST['isWaitForModerator'])  && $_REQUEST['isWaitForModerator'] == 'true' ? 1 : 0;
+    $isSessionRecorded = isset($_REQUEST['isSessionRecorded']) && $_REQUEST['isSessionRecorded'] === 'true' ? 1 : 0;
+    $meetingId =  isset($_REQUEST['meetingId']) ? $_REQUEST['meetingId'] : '';
+    $startDate = isset($_REQUEST['startDate']) ? date("Y-m-d H:i:s", strtotime($_REQUEST['startDate']))  : '';
+    $endDate = isset($_REQUEST['endDate']) ? date("Y-m-d H:i:s", strtotime($_REQUEST['endDate'])) : '';
+
+    //    var_dump("UPDATE meeting_details SET virtual_classroom_name = '$virtualClassroomName' , welcome_message = '$welcomeMessage',is_wait_for_moderator = '$isWaitForModerator', is_session_recorded= '$isSessionRecorded', `start_date` = '$startDate', `end_date` = '$endDate'  WHERE meeting_id = '$meetingId' ");die;
+    $updateQuery = execute_query("UPDATE meeting_details SET virtual_classroom_name = '$virtualClassroomName' , welcome_message = '$welcomeMessage',is_wait_for_moderator = '$isWaitForModerator', is_session_recorded= '$isSessionRecorded', `start_date` = '$startDate', `end_date` = '$endDate'  WHERE meeting_id = '$meetingId' ");
+    if($updateQuery){
+        return get_generic_response(200, [], "Records Updated Sucessfull!");   
+    }
+    return get_generic_response(400, [], "Records Updated Failed!");   
+    
+}
 
 function getRecordByMeetingId(){
     $meetingId = isset($_REQUEST['meetingId']) ? $_REQUEST['meetingId'] : '';
@@ -598,7 +698,8 @@ function getRecordByMeetingId(){
 
 function deleteRecordByMeetingId(){
     $meetingId = isset($_REQUEST['meetingId']) ? $_REQUEST['meetingId'] : '';
-    $getDataQuery = execute_query("DELETE  from meeting_details where  meeting_id = '".$meetingId."' ");
+    $getDataQuery = execute_query("UPDATE meeting_details SET is_deleted = 1 where  meeting_id = '".$meetingId."' ");
+    
     if($getDataQuery){
         return get_generic_response(200, [], "Records Deleted Successfully!");   
     }
@@ -615,10 +716,10 @@ function getMeetingInfoByMeetingId($meetingId){
     $url .= "&checksum=" . sha1("getMeetingInfo" . http_build_query($bbb_meeting_create_opts) . BIGBLUE_SECRET);
     // echo "<pre>";
     // var_dump($url);die;
-    // $response = call_curl($url);
+    $response = call_curl($url);
     // echo "<pre>";
     // var_dump($response);die;
-    return $url;
+    return $response;
        
 }  
 
@@ -640,5 +741,284 @@ function getRecordings(){
     $url .= "&checksum=" . sha1("getRecordings" . http_build_query($bbb_meeting_recording_opts) . BIGBLUE_SECRET);
     $response = call_curl($url);
    return $response;
+}
+
+function getCourseforSummaryReport(){
+    $selectQuery = execute_query("SELECT DISTINCT(course_name), course_id from meeting_details ");
+    $data = ToArrays($selectQuery);  
+    if(count( $data )){
+        return get_generic_response(200, $data, "Records Addedd Failed!");   
+    }
+}
+
+function getSectionforSummaryReport(){
+    $courseId = isset($_REQUEST['selectedCourse']) ? $_REQUEST['selectedCourse'] : ''; 
+    $selectQuery = execute_query("SELECT DISTINCT
+                                    (md.section_id),
+                                    (md.section_name),
+                                    ml.created_at,
+                                    ml.session_id
+                                FROM
+                                    meeting_logs ml
+                                LEFT JOIN meeting_details md ON
+                                    md.id = ml.meeting_details_id
+                                WHERE   
+                                    md.course_id = $courseId
+                                    GROUP BY 1,2,3,4
+                                    ");
+    $data = ToArrays($selectQuery);
+    $resultData = [];
+    foreach($data as $val){
+        $resultData['sectionData'][$val['section_id']] = $val; 
+    }  
+    foreach($data as $val){
+        $timestamp_seconds = $val['session_id'] / 1000;
+        $formatted_date = date("Y-m-d H:i", $timestamp_seconds);
+        $val['timestamp'] = $formatted_date;
+        $resultData['dateData'][$val['session_id']] = $val;
+    }
+    if(count( $resultData )){
+        return get_generic_response(200, $resultData, "Records Addedd Failed!");   
+    }
+}
+
+function getCSVDataforSummaryReport(){
+    $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
+    $query = "SELECT
+                md.virtual_classroom_name,
+                md.created_at as `Date Time`,
+                COUNT(DISTINCT(ml.user_id)) AS no_of_participants
+            FROM
+                meeting_logs ml
+            LEFT JOIN meeting_details md ON
+                md.id = ml.meeting_details_id
+            WHERE
+                md.section_id = $sectionId AND ml.user_type = 1
+            GROUP BY
+                1,
+                2";
+    query_to_csv('report_',$query);
+}   
+
+function getCSVDataforDetailedReport(){
+    $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
+    $date = isset($_REQUEST['date']) ? $_REQUEST['date'] : '';
+    
+    $query = "SELECT DISTINCT
+                (ml.usn) AS participant_usn,
+                ml.email AS pericipant_email,
+                aa.duration
+            FROM
+                meeting_logs ml
+            LEFT JOIN meeting_details md ON
+                md.id = ml.meeting_details_id
+            LEFT JOIN attendees_analytics aa ON
+                aa.session_id = ml.session_id AND ml.usn = aa.usn
+            WHERE
+                md.section_id = $sectionId AND ml.user_type = 1 AND ml.session_id = '".$date."'
+            GROUP BY
+                1,
+                2,
+                3";
+    query_to_csv('report_',$query);
+}
+
+
+function saveAttendeeDetails(){
+ 
+    $sessionId = $_REQUEST['selectedSessionOption']['value'];
+    $attendeeData = ($_REQUEST['attendeeDetails']['data']);
+    foreach($attendeeData as $val){
+        if($val['Name'] != 'Anonymous' && $val['Name'] != ''){
+
+            $splitNameUsn = explode("-", $val['Name']);
+            $name = $splitNameUsn[0];
+            $usn = $splitNameUsn[1];
+
+            $insQuery = execute_insert_query("INSERT INTO `attendees_analytics` (
+                `session_id`,
+                `name`,
+                `usn`,
+                `moderator`,
+                `activity_score`,
+                `talk_time`,
+                `webcam_time`,
+                `messages`,
+                `emojis`,
+                `poll_votes`,
+                `raise_hands`,
+                `join_date`,
+                `left_val`,
+                `duration`
+            )
+            VALUES (
+                '".$sessionId."',
+                '".$name."',
+                '".$usn."',
+                '".$val['Moderator']."',
+                '".$val['Activity Score']."',
+                '".$val['Talk time']."',
+                '".$val['Webcam Time']."',
+                '".$val['Messages']."',
+                '".$val['Emojis']."',
+                '".$val['Poll Votes']."',
+                '".$val['Raise Hands']."',
+                '".$val['Join']."',
+                '".$val['Left']."',
+                '".$val['Duration']."'
+            )
+            ON DUPLICATE KEY UPDATE
+                `name` = VALUES(`name`),
+                `moderator` = VALUES(`moderator`),
+                `activity_score` = VALUES(`activity_score`),
+                `talk_time` = VALUES(`talk_time`),
+                `webcam_time` = VALUES(`webcam_time`),
+                `messages` = VALUES(`messages`),
+                `emojis` = VALUES(`emojis`),
+                `poll_votes` = VALUES(`poll_votes`),
+                `raise_hands` = VALUES(`raise_hands`),
+                `join_date` = VALUES(`join_date`),
+                `left_val` = VALUES(`left_val`),
+                `duration` = VALUES(`duration`);
+            ");
+    
+        }
+    }   
+    if($insQuery){
+        return get_generic_response(200, [$insQuery], "Records Successfully Inserted!");     
+    }
+    return get_generic_response(200, [], "Records has similar values!");     
+    
+
+    // else{
+    //     return get_generic_response(200, [], "Records Inserted Failed!");   
+    // }
+}
+
+function getSessionDateByCourseSection(){
+    $courseId = isset($_REQUEST['courseId']) ? $_REQUEST['courseId'] : '';
+    $sectionId = isset($_REQUEST['sectionId']) ? $_REQUEST['sectionId'] : '';
+
+    // echo "<pre>";
+    // var_dump($_REQUEST);die;
+
+
+    $query = execute_query("SELECT
+                            ml.session_id
+                        FROM
+                            `meeting_logs` ml
+                        LEFT JOIN meeting_details md ON
+                            md.id = ml.meeting_details_id
+                        WHERE
+                            `course_id` = $courseId AND `section_id` = $sectionId");
+    $resultQuery = ToArrays($query);
+    $requiredDate = [];
+    foreach($resultQuery as $resp){
+   
+        $timestampMilliseconds = $resp['session_id']; 
+       
+        if($timestampMilliseconds!=''){
+         
+            $timestampSeconds = $timestampMilliseconds / 1000; 
+            $date = date("Y-m-d H-i", $timestampSeconds);
+            $requiredDate[$resp['session_id']] = $date;
+        }
+        
+   
+    }
+        // $requiredDateValues = array_values($requiredDate);
+
+        return get_generic_response(200, $requiredDate, "Records Found Successfully!");   
+}
+
+
+function getMoodleAssessmentCSVReport(){
+    $college_id = 1;
+    $course_id = 1;
+    $section_id = 4;
+    $auth = "ZTg1N2UyYTlkOGNkOGJkOWY5NGQwZjcw"; 
+    $myArray = [
+        "auth" => $auth,
+        "course_id" => $course_id,
+        "college_id" => $college_id,
+        "section_id" => $section_id
+    ];
+    $aa_var = (form_rester_api_object("getMoodleAssessmentReport", $myArray));
+   
+    $var = (json_encode([$aa_var]));
+    $headers = array('x-auth-key: ' . $auth);
+    $ab_var = APICall('POST', BASE_URL, $var, $headers);
+    $apiData = (json_decode($ab_var));
+    $getMoodleAssessmentReport = isset($apiData->data->getMoodleAssessmentReport) ? $apiData->data->getMoodleAssessmentReport : [];
+
+    $csvFile = fopen('output.csv', 'w');
+
+    // Define a dynamic CSV header based on the unique activity names in the data
+    $header = ['name', 'usn', 'email'];
+    foreach ($getMoodleAssessmentReport as $row) {
+        if (isset($row->activity_name) && !in_array($row->activity_name, $header)) {
+            $header[] = $row->activity_name;
+        }
+    }
+    
+    fputcsv($csvFile, $header);
+    
+    $userDatas = [];
+    $scoreSums = []; // Initialize an array to store score sums
+    
+    foreach ($getMoodleAssessmentReport as $row) {
+        $key = $row->user_id.":-:".$row->usn.":-:".$row->email;
+    
+        if (!isset($userIds[$key])) {
+            $userIds[$key] = []; // Initialize the user data array
+            $scoreSums[$key] = []; // Initialize the score sum array for this user
+        }
+    
+        $userIds[$key][] = $row;
+    
+        // Assuming 'score_key' is the actual key for the score in your data
+        if (isset($row->score)) {
+            if ($row->score != "NA") {
+                // Store the score in the user's score sum array, using the activity name as the key
+                $scoreSums[$key][$row->activity_name] = $row->score;
+            }
+        }
+    }
+  
+    // Now $scoreSums contains the score sums for each user
+    // You can generate the CSV rows based on the header and score sums
+    foreach ($userIds as $key => $userData) {
+        $userDataArray = explode(":-:", $key);
+        $csvRow = [
+            $userDataArray[0], // name
+            $userDataArray[1], // usn
+            $userDataArray[2], // email
+        ];
+    
+        // Loop through the header to add scores for each activity
+        for ($i = 3; $i < count($header); $i++) {
+            $activityName = $header[$i];
+    
+            // Check if the activity name exists in the $scoreSums array for this user
+            if (isset($scoreSums[$key][$activityName])) {
+                $csvRow[] = $scoreSums[$key][$activityName];
+            } else {
+                $csvRow[] = 0; // If there is no score, add 0
+            }
+        }
+    
+        fputcsv($csvFile, $csvRow);
+    }
+    fclose($csvFile);
+    
+
+    // Download the CSV file
+    header('Content-Type: application/csv');
+    header('Content-Disposition: attachment; filename="output.csv"');
+    readfile('output.csv');
+
+    // You can also delete the CSV file if needed
+    unlink('output.csv');
+
 
 }

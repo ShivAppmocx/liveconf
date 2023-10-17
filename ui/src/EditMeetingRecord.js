@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   MDBBtn,
   MDBModal,
@@ -19,114 +19,120 @@ import {
 } from 'mdb-react-ui-kit';
 import axios from 'axios';
 import { DateTimePicker } from 'react-datetime-picker';
-import apiPath from './includes/config';
+import { apiPath, preURLValue } from './includes/config.js';
 import CryptoJS from 'crypto-js';
 import * as qs from 'qs';
 
 
-export default function EditMeetingRecord({ rowData, rowIndex, showModal, toggleModal, toggleJoinButton, getRecordByMeetingId }) {
+export default function EditMeetingRecord({ rowData, rowIndex, showModal, toggleModal, toggleJoinButton, editRowData, getRecordByMeetingId }) {
 
-  console.log('getRecordByMeetingId', getRecordByMeetingId );
-  
- 
-  let courseName = ''; // Define courseName outside the if-else block
-  let sectionName = '';
-  let deptId = '';
-  let courseId = '';
-  let sectionId = '';
-  let vClassName = '';
-  let welMsg = '';
-  if (typeof rowData == 'undefined') {
-    courseName = 'null';
-    sectionName = 'null';
-  } else {
-    courseName = rowData.course_name;
-    sectionName = rowData.section_name;
-    deptId = rowData.department_id;
-    courseId = rowData.course_id;
-    sectionId = rowData.section_id;
-    if(getRecordByMeetingId){
-      vClassName = getRecordByMeetingId.virtual_classroom_name;
-      welMsg = getRecordByMeetingId.welcome_message;
-      console.log('inn',vClassName);      
-    }
-  }
-
+  const [isWaitForModerator, setIsWaitForModerator] = useState(false);
+  const [isSessionRecorded, setIsSessionRecorded] = useState(false);
   const [dateValue1, onChangeDate1] = useState(new Date());
   const [dateValue2, onChangeDate2] = useState(new Date());
 
-  const localData = JSON.parse(localStorage.getItem("ReqData"));
-  const collegeId = (localData.clgDetails)[0].college_id;
-  const userId = (localData.userDetails)[0].user_id;
-  const userEmail = (localData.userDetails)[0].email;
+  const [formValue, setFormValue] = useState({
+    fname: '',
+    lname: 'Otto',
+    virtualClassroomName: editRowData[0].virtual_classroom_name,
+    welcomeMessage: editRowData[0].welcome_message,
+    dept_id: editRowData[0].department_id,
+    course_id: editRowData[0].course_id,
+    section_id: editRowData[0].section_id,
+    meeting_id : editRowData[0].meeting_id,
+    college_id: '',
+    user_id: '',
+    user_email: '',
+    course_name: rowData.course_name,
+    section_name: rowData.section_name,
+  });
+  // return;
+  useEffect(() => {
 
-  const initialFormValue = getRecordByMeetingId
-  ? {
-      fname: '',
-      lname: 'Otto',
-      virtualClassroomName: getRecordByMeetingId.virtual_classroom_name,
-      welcomeMessage: getRecordByMeetingId.welcome_message,
-      dept_id: getRecordByMeetingId.department_id,
-      course_id: getRecordByMeetingId.course_id,
-      section_id: getRecordByMeetingId.section_id,
-      college_id: collegeId,
-      user_id: userId,
-      user_email: userEmail,
+    if (editRowData) {
+      const [firstRowData] = editRowData; // Assuming editRowData is an array
+      // console.log('firstRo', firstRowData);
+      setIsWaitForModerator(firstRowData.is_wait_for_moderator === 1);
+      setIsSessionRecorded(firstRowData.is_session_recorded === 1);
+
+      onChangeDate1(firstRowData.start_date);
+      onChangeDate2(firstRowData.end_date);
     }
-  : {
-      fname: '',
-      lname: 'Otto',
-      course_name: courseName,
-      section_name: sectionName,
-      virtualClassroomName: '',
-      welcomeMessage: '',
-      dept_id: deptId,
-      course_id: courseId,
-      section_id: sectionId,
-      college_id: collegeId,
-      user_id: userId,
-      user_email: userEmail,
-    };
 
-    console.log('initialFormValue',initialFormValue);
+    // Update course_name and section_name based on rowData
+    // if (rowData) {
+    //   setFormValue({
+    //     ...formValue,
+    //     course_name: rowData.course_name,
+    //     section_name: rowData.section_name,
+    //   });
+    // }
 
-const [formValue, setFormValue] = useState(initialFormValue);
+  }, [editRowData, rowData]);
+
+
+
+  // let courseName = ''; // Define courseName outside the if-else block
+  // let sectionName = '';
+  // let deptId = '';
+  // let courseId = '';
+  // let sectionId = '';
+  // let vClassName = '';
+  // let welMsg = '';
+  // if (typeof rowData == 'undefined') {
+  //   courseName = 'null';
+  //   sectionName = 'null';
+  // } else {
+  //   courseName = rowData.course_name;
+  //   sectionName = rowData.section_name;
+  //   deptId = rowData.department_id;
+  //   courseId = rowData.course_id;
+  //   sectionId = rowData.section_id;
+  //   if(editRowData){
+  //     vClassName = editRowData[0].virtual_classroom_name;
+  //     welMsg = editRowData[0].welcome_message;
+  //     if(editRowData[0].is_session_recorded == 1){
+  //       setIsSessionRecorded(true);
+  //     }else{
+  //       setIsSessionRecorded(false);
+  //     }
+
+  //     if(editRowData[0].is_wait_for_moderator == 1){
+  //       setIsWaitForModerator(true);
+  //     }else{
+  //       setIsWaitForModerator(false);
+  //     }      
+  //   }
+  // }
+
+
+  // const localData = JSON.parse(localStorage.getItem("ReqData"));
+  // const collegeId = (localData.clgDetails)[0].college_id;
+  // const userId = (localData.userDetails)[0].user_id;
+  // const userEmail = (localData.userDetails)[0].email;
+
 
 
   // const [formValue, setFormValue] = useState({
   //   fname: '',
   //   lname: 'Otto',
-  //   course_name: courseName,
-  //   section_name: sectionName,
-  //   virtualClassroomName: vClassName,
-  //   welcomeMessage: welMsg,
-  //   dept_id: deptId,
-  //   course_id: courseId,
-  //   section_id: sectionId,
+  //   virtualClassroomName: editRowData[0].virtual_classroom_name,
+  //   welcomeMessage: editRowData[0].welcome_message,
+  //   dept_id: editRowData[0].department_id,
+  //   course_id: editRowData[0].course_id,
+  //   section_id: editRowData[0].section_id,
   //   college_id: collegeId,
   //   user_id: userId,
-  //   user_email: userEmail
+  //   user_email: userEmail,
+  //   course_name: courseName,
+  //   section_name: sectionName,
   // });
 
-  if (getRecordByMeetingId && getRecordByMeetingId.welcomeMessage) {
-    // setFormValue(prevFormValue => ({
-    //   ...prevFormValue,
-    //   welcomeMessage: getRecordByMeetingId.welcomeMessage
-    // }));
-   
-    // setFormValue({ ...formValue, "welcomeMessage": getRecordByMeetingId.welcomeMessage });
-    
-  }
   const onChange = (e) => {
     setFormValue({ ...formValue, [e.target.name]: e.target.value });
   };
 
-  const getFormData = (e) => {
-    e.preventDefault();
-    alert('aa');
-  }
-  const [isWaitForModerator, setIsWaitForModerator] = useState(true);
-  const [isSessionRecorded, setIsSessionRecorded] = useState(true);
+
 
   const handleWaitForModeratorChange = () => {
     setIsWaitForModerator(!isWaitForModerator);
@@ -140,12 +146,12 @@ const [formValue, setFormValue] = useState(initialFormValue);
     axios
       .get(apiPath, { params })
       .then(response => {
-        console.log('resp', response);
+        // console.log('resp', response);
         let respMeetingId = response.data.data.meetingId;
         let respMeetingName = response.data.data.meetingName;
         // createMeeting(respMeetingId, respMeetingName);
         if (response.data.status_code == 200) {
-          alert(`Meeting with meeting id ${response.data.data.meetingId} has been Created and Saved Successfully!`);
+          alert(`Meeting Details has been updated successfully!`);
         }
       })
       .catch(error => {
@@ -167,15 +173,20 @@ const [formValue, setFormValue] = useState(initialFormValue);
     const createdByUserId = formValue.user_id;
     const createdByUserEmail = formValue.user_email;
     const createdByCollegeId = formValue.college_id;
+    const meetingId = formValue.meeting_id;
 
     const virtualClassroomName = formValue.virtualClassroomName;
-    const sqlFormattedStartDateTime = dateValue1.toISOString().slice(0, 19).replace("T", " ");
-    const sqlFormattedEndDateTime = dateValue2.toISOString().slice(0, 19).replace("T", " ");
+    // const sqlFormattedStartDateTime = dateValue1.toISOString().slice(0, 19).replace("T", " ");
+    // const sqlFormattedEndDateTime = dateValue2.toISOString().slice(0, 19).replace("T", " ");
+
+    const sqlFormattedStartDateTime = dateValue1;
+    const sqlFormattedEndDateTime = dateValue2;
+
+
     const welcomeMessage = formValue.welcomeMessage;
 
-
     const insertParams = ({
-      method: 'saveMeetingDetail',
+      method: 'updateMeetingDetail',
       courseName: courseName,
       sectionName: sectionName,
       virtualClassroomName: virtualClassroomName,
@@ -189,12 +200,12 @@ const [formValue, setFormValue] = useState(initialFormValue);
       courseId: courseId,
       createdByUserId: createdByUserId,
       createdByUserEmail: createdByUserEmail,
-      createdByCollegeId: createdByCollegeId
+      createdByCollegeId: createdByCollegeId,
+      meetingId : meetingId
     });
 
     insertClassDetails(insertParams);
     toggleModal();
-    toggleJoinButton(rowIndex);
   };
 
   return (
@@ -203,7 +214,7 @@ const [formValue, setFormValue] = useState(initialFormValue);
         <MDBModalDialog>
           <MDBModalContent>
             <MDBModalHeader>
-              <MDBModalTitle>Modal title</MDBModalTitle>
+              <MDBModalTitle>Edit</MDBModalTitle>
               <MDBBtn className='btn-close' color='none' onClick={toggleModal}></MDBBtn>
             </MDBModalHeader>
             <form id="formData" ref={formRef} onSubmit={handleSubmit}>
@@ -290,13 +301,27 @@ const [formValue, setFormValue] = useState(initialFormValue);
                 </div>
 
                 <div className='col-12'>
-                  <label>Start Date</label>
-                  <DateTimePicker onChange={onChangeDate1} value={dateValue1} />
+                  <div className='form-group row align-items-center'>
+                    <label className='col-sm-3 col-form-label font-weight-bold'>Start Date</label>
+                    <div className='col-sm-9'>
+                      <DateTimePicker
+                        className='date-time-picker'
+                        style={{ border: '1px solid #ccc', borderRadius: '4px' }}
+                        onChange={onChangeDate1}
+                        value={dateValue1}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className='col-12'>
-                  <label>End Date</label>
 
-                  <DateTimePicker onChange={onChangeDate2} value={dateValue2} />
+
+                <div className='col-12'>
+                  <div className='form-group row align-items-center'>
+                    <label className='col-sm-3 col-form-label font-weight-bold'>End Date</label>
+                    <div className='col-sm-9'>
+                      <DateTimePicker className='endDate-time-picker' style={{ border: '1px solid #ccc', borderRadius: '4px' }} onChange={onChangeDate2} value={dateValue2} />
+                    </div>
+                  </div>
                 </div>
 
               </MDBModalBody>
@@ -305,7 +330,7 @@ const [formValue, setFormValue] = useState(initialFormValue);
                 <MDBBtn color='secondary' onClick={toggleModal}>
                   Close
                 </MDBBtn>
-                <MDBBtn type='submit' >Save changes</MDBBtn>
+                <MDBBtn type='submit' >Update changes</MDBBtn>
               </MDBModalFooter>
             </form>
           </MDBModalContent>
